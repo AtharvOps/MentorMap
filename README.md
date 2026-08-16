@@ -1,4 +1,4 @@
-# 🚀 MentorMap 2.0 — AI-Powered Adaptive Learning Intelligence Platform
+# 🚀 MentorMap — AI-Powered Adaptive Learning Intelligence Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
 [![Author](https://img.shields.io/badge/Author-Atharv%20Patil-0e8544.svg)](#-author--developer)
