@@ -7,7 +7,7 @@ import { Container, Button, Card, Alert, Form, ProgressBar } from "react-bootstr
 import "./Quiz.css";
 
 const GOOGLE_GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
-const GOOGLE_GEMINI_API_URL = process.env.REACT_APP_GEMINI_API_URL;
+const GOOGLE_GEMINI_API_URL = process.env.REACT_APP_GEMINI_API_URL || "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 

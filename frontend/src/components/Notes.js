@@ -7,7 +7,7 @@ import html2canvas from "html2canvas";
 import "./Notes.css";
 
 const GOOGLE_GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
-const GOOGLE_GEMINI_API_URL = process.env.REACT_APP_GEMINI_API_URL;
+const GOOGLE_GEMINI_API_URL = process.env.REACT_APP_GEMINI_API_URL || "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
 
 const Notes = () => {
   const [notes, setNotes] = useState("");

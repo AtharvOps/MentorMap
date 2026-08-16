@@ -321,27 +321,18 @@ const CoursePathway = () => {
         }
 
         setCourse(fetchedCourse);
-        setProgress(fetchedCourse.progress || 0);
+        setProgress(Number(fetchedCourse.progress) || 0);
 
         if (fetchedCourse.pathway) {
-          const totalSteps = fetchedCourse.pathway.reduce(
-            (acc, section) => acc + section.children.length,
-            0
-          );
+          const steps = getPathwaySteps(fetchedCourse.pathway);
+          const totalSteps = steps.length || 1;
           const completedCount = Math.round(
-            (fetchedCourse.progress / 100) * totalSteps
+            ((Number(fetchedCourse.progress) || 0) / 100) * totalSteps
           );
 
           const newCompletedSteps = new Set();
-          let stepsProcessed = 0;
-
-          fetchedCourse.pathway.forEach((section, sectionIndex) => {
-            section.children.forEach((_, stepIndex) => {
-              if (stepsProcessed < completedCount) {
-                newCompletedSteps.add(`${sectionIndex}-${stepIndex}`);
-                stepsProcessed++;
-              }
-            });
+          steps.slice(0, completedCount).forEach((step) => {
+            newCompletedSteps.add(step.id);
           });
 
           setCompletedSteps(newCompletedSteps);
@@ -356,11 +347,38 @@ const CoursePathway = () => {
     fetchCourse();
   }, [id]);
 
-  const handleStepClick = async (sectionIndex, stepIndex) => {
+  const getPathwaySteps = (pathway) => {
+    if (!pathway) return [];
+    const rawSections = Array.isArray(pathway) ? pathway : (pathway.children || []);
+    const steps = [];
+    rawSections.forEach((section, sIdx) => {
+      if (section.children && section.children.length > 0) {
+        section.children.forEach((child, cIdx) => {
+          steps.push({
+            id: `${sIdx}-${cIdx}`,
+            name: child.name || `Topic ${cIdx + 1}`,
+            sectionIndex: sIdx,
+            stepIndex: cIdx,
+            quiz: child.quiz || []
+          });
+        });
+      } else if (section.name) {
+        steps.push({
+          id: `${sIdx}-0`,
+          name: section.name,
+          sectionIndex: sIdx,
+          stepIndex: 0,
+          quiz: section.quiz || []
+        });
+      }
+    });
+    return steps;
+  };
+
+  const handleStepClick = async (stepId) => {
     if (!course) return;
 
     try {
-      const stepId = `${sectionIndex}-${stepIndex}`;
       const newCompletedSteps = new Set(completedSteps);
 
       if (newCompletedSteps.has(stepId)) {
@@ -369,10 +387,8 @@ const CoursePathway = () => {
         newCompletedSteps.add(stepId);
       }
 
-      const totalSteps = course.pathway.reduce(
-        (acc, section) => acc + section.children.length,
-        0
-      );
+      const steps = getPathwaySteps(course.pathway);
+      const totalSteps = steps.length || 1;
       const newProgress = Math.round(
         (newCompletedSteps.size / totalSteps) * 100
       );
@@ -401,11 +417,11 @@ const CoursePathway = () => {
     }
   };
 
-  const handleQuizClick = (child, sectionIndex, stepIndex) => {
+  const handleQuizClick = (topicName, quizData, sectionIndex, stepIndex) => {
     navigate("/quiz", {
       state: {
-        topic: child.name,
-        quizData: child.quiz || [],
+        topic: topicName,
+        quizData: quizData || [],
         courseId: id,
         sectionIndex,
         stepIndex,
@@ -419,10 +435,10 @@ const CoursePathway = () => {
     window.open(searchURL, "_blank");
   };
 
-  const handleNotesClick = (child, sectionIndex, stepIndex) => {
+  const handleNotesClick = (topicName, sectionIndex, stepIndex) => {
     navigate("/notes", {
       state: {
-        topic: child.name,
+        topic: topicName,
         courseId: id,
         sectionIndex,
         stepIndex,
@@ -457,12 +473,10 @@ const CoursePathway = () => {
       </Box>
     );
 
-  // card/table uses a counter, so new let here
-  let stepNumber = 1;
+  const steps = getPathwaySteps(course.pathway);
 
   // ------------ Mobile Card Layout ------------
   if (isMobile) {
-    stepNumber = 1; // reset for correct numbering
     return (
       <Box maxWidth={400} mx="auto" px={1} py={2}>
         <Typography variant="h5" mb={1} align="center" fontWeight={700}>
@@ -479,71 +493,67 @@ const CoursePathway = () => {
           </Typography>
         </Box>
         <Stack spacing={2}>
-          {course.pathway.map((section, sectionIndex) =>
-            section.children.map((child, stepIndex) => {
-              const stepId = `${sectionIndex}-${stepIndex}`;
-              const isCompleted = completedSteps.has(stepId);
-              return (
-                <Card key={stepId} elevation={3} sx={{ borderRadius: 3 }}>
-                  <CardContent>
-                    <Typography variant="subtitle2" color="text.secondary" mb={1}>
-                      Step {stepNumber++}
+          {steps.map((step, idx) => {
+            const isCompleted = completedSteps.has(step.id);
+            return (
+              <Card key={step.id} elevation={3} sx={{ borderRadius: 3 }}>
+                <CardContent>
+                  <Typography variant="subtitle2" color="text.secondary" mb={1}>
+                    Step {idx + 1}
+                  </Typography>
+                  <Typography variant="body1" mb={1} fontWeight={600}>
+                    {step.name}
+                  </Typography>
+                </CardContent>
+                <CardActions sx={{ justifyContent: "space-between", px: 2 }}>
+                  <Box>
+                    <Checkbox
+                      checked={isCompleted}
+                      icon={<CheckCircleIcon color="disabled" />}
+                      checkedIcon={<CheckCircleIcon color="primary" />}
+                      onChange={() => handleStepClick(step.id)}
+                      sx={{ p: 0 }}
+                    />
+                    <Typography variant="caption" component="span" ml={0.5}>
+                      Done
                     </Typography>
-                    <Typography variant="body1" mb={1} fontWeight={600}>
-                      {child.name}
-                    </Typography>
-                  </CardContent>
-                  <CardActions sx={{ justifyContent: "space-between", px: 2 }}>
-                    <Box>
-                      <Checkbox
-                        checked={isCompleted}
-                        icon={<CheckCircleIcon color="disabled" />}
-                        checkedIcon={<CheckCircleIcon color="primary" />}
-                        onChange={() => handleStepClick(sectionIndex, stepIndex)}
-                        sx={{ p: 0 }}
-                      />
-                      <Typography variant="caption" component="span" ml={0.5}>
-                        Done
-                      </Typography>
-                    </Box>
-                    <Stack direction="row" spacing={1}>
-                      <Button
-                        size="small"
-                        startIcon={<LinkIcon />}
-                        color="info"
-                        onClick={() => handleResourcesClick(child.name)}
-                      >
-                        Resources
-                      </Button>
-                      <Button
-                        size="small"
-                        startIcon={<NotesIcon />}
-                        color="success"
-                        onClick={() => handleNotesClick(child, sectionIndex, stepIndex)}
-                      >
-                        Notes
-                      </Button>
-                      <Button
-                        size="small"
-                        startIcon={<QuizIcon />}
-                        color="warning"
-                        onClick={() => handleQuizClick(child, sectionIndex, stepIndex)}
-                      >
-                        Quiz
-                      </Button>
-                    </Stack>
-                  </CardActions>
-                </Card>
-              );
-            })
-          )}
+                  </Box>
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      size="small"
+                      startIcon={<LinkIcon />}
+                      color="info"
+                      onClick={() => handleResourcesClick(step.name)}
+                    >
+                      Resources
+                    </Button>
+                    <Button
+                      size="small"
+                      startIcon={<NotesIcon />}
+                      color="success"
+                      onClick={() => handleNotesClick(step.name, step.sectionIndex, step.stepIndex)}
+                    >
+                      Notes
+                    </Button>
+                    <Button
+                      size="small"
+                      startIcon={<QuizIcon />}
+                      color="warning"
+                      onClick={() => handleQuizClick(step.name, step.quiz, step.sectionIndex, step.stepIndex)}
+                    >
+                      Quiz
+                    </Button>
+                  </Stack>
+                </CardActions>
+              </Card>
+            );
+          })}
         </Stack>
       </Box>
     );
   }
 
   // ------------ Desktop/Tablet Table Layout ------------
-  stepNumber = 1; // reset for desktop view
   return (
     <Box maxWidth={900} mx="auto" px={2} py={3}>
       <Typography variant="h4" mb={1} align="center" fontWeight={700}>
@@ -579,61 +589,58 @@ const CoursePathway = () => {
             </tr>
           </thead>
           <tbody>
-            {course.pathway.map((section, sectionIndex) =>
-              section.children.map((child, stepIndex) => {
-                const stepId = `${sectionIndex}-${stepIndex}`;
-                const isCompleted = completedSteps.has(stepId);
+            {steps.map((step, idx) => {
+              const isCompleted = completedSteps.has(step.id);
 
-                return (
-                  <tr key={stepId}>
-                    <td style={tdStyle}>{stepNumber++}</td>
-                    <td style={tdStyle}>{child.name}</td>
-                    <td style={tdStyle}>
-                      <Checkbox
-                        checked={isCompleted}
-                        icon={<CheckCircleIcon color="disabled" />}
-                        checkedIcon={<CheckCircleIcon color="primary" />}
-                        onChange={() => handleStepClick(sectionIndex, stepIndex)}
-                        sx={{ p: 0 }}
-                      />
-                    </td>
-                    <td style={tdStyle}>
-                      <Button
-                        size="small"
-                        startIcon={<LinkIcon />}
-                        color="info"
-                        variant="outlined"
-                        onClick={() => handleResourcesClick(child.name)}
-                      >
-                        Resources
-                      </Button>
-                    </td>
-                    <td style={tdStyle}>
-                      <Button
-                        size="small"
-                        startIcon={<NotesIcon />}
-                        color="success"
-                        variant="outlined"
-                        onClick={() => handleNotesClick(child, sectionIndex, stepIndex)}
-                      >
-                        Notes
-                      </Button>
-                    </td>
-                    <td style={tdStyle}>
-                      <Button
-                        size="small"
-                        startIcon={<QuizIcon />}
-                        color="warning"
-                        variant="outlined"
-                        onClick={() => handleQuizClick(child, sectionIndex, stepIndex)}
-                      >
-                        Quiz
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
+              return (
+                <tr key={step.id}>
+                  <td style={tdStyle}>{idx + 1}</td>
+                  <td style={tdStyle}>{step.name}</td>
+                  <td style={tdStyle}>
+                    <Checkbox
+                      checked={isCompleted}
+                      icon={<CheckCircleIcon color="disabled" />}
+                      checkedIcon={<CheckCircleIcon color="primary" />}
+                      onChange={() => handleStepClick(step.id)}
+                      sx={{ p: 0 }}
+                    />
+                  </td>
+                  <td style={tdStyle}>
+                    <Button
+                      size="small"
+                      startIcon={<LinkIcon />}
+                      color="info"
+                      variant="outlined"
+                      onClick={() => handleResourcesClick(step.name)}
+                    >
+                      Resources
+                    </Button>
+                  </td>
+                  <td style={tdStyle}>
+                    <Button
+                      size="small"
+                      startIcon={<NotesIcon />}
+                      color="success"
+                      variant="outlined"
+                      onClick={() => handleNotesClick(step.name, step.sectionIndex, step.stepIndex)}
+                    >
+                      Notes
+                    </Button>
+                  </td>
+                  <td style={tdStyle}>
+                    <Button
+                      size="small"
+                      startIcon={<QuizIcon />}
+                      color="warning"
+                      variant="outlined"
+                      onClick={() => handleQuizClick(step.name, step.quiz, step.sectionIndex, step.stepIndex)}
+                    >
+                      Quiz
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </Paper>

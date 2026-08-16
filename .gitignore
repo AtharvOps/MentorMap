@@ -1,2 +1,14 @@
 # dependencies
+node_modules/
 /node_modules
+
+# environment variables
+.env
+.env.local
+backend/.env
+frontend/.env
+
+# build outputs
+/build
+/dist
+.DS_Store
