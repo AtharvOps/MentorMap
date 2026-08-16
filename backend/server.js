@@ -6,6 +6,11 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import bodyParser from "body-parser";
 import dns from "dns";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configure DNS for MongoDB Atlas resolution
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
@@ -159,6 +164,21 @@ app.use("/api/achievements", achievementRoutes);
 // Health check route
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", service: "MentorMap 2.0 API", time: new Date() });
+});
+
+// Serve frontend static build files if available
+const frontendBuildPath = path.join(__dirname, "../frontend/build");
+app.use(express.static(frontendBuildPath));
+
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api/")) {
+    return next();
+  }
+  res.sendFile(path.join(frontendBuildPath, "index.html"), (err) => {
+    if (err) {
+      res.redirect("/explore");
+    }
+  });
 });
 
 const PORT = process.env.PORT || 5000;
