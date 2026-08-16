@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { chatWithTutor } from "../services/api";
-import { 
-  Send, RefreshCw 
-} from "lucide-react";
+import { Send } from "lucide-react";
 import { toast } from "react-toastify";
 
 const TutorPage = () => {

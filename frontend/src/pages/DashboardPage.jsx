@@ -58,7 +58,6 @@ const DashboardPage = () => {
   const xp = totalMinutes * 10 + (user?.stats?.completedTopicsCount || 3) * 50;
   const level = Math.floor(xp / 500) + 1;
   const currentLevelXp = xp % 500;
-  const levelProgress = Math.min(100, Math.round((currentLevelXp / 500) * 100));
 
   const badges = [
     { name: "Streak Slayer", icon: "🔥", desc: "3+ day streak", unlocked: (user?.stats?.streakDays || 1) >= 3 },
