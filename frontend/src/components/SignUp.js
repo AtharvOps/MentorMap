@@ -6,9 +6,7 @@ import signupAnimation from "../assets/signup-animation.json";
 import "./SignUp.css";
 
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
-//`${API_BASE_URL}/pathways`
+import { signupUser } from "../services/api";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({ 
@@ -31,24 +29,30 @@ const SignUp = () => {
     setError("");
     setSuccess("");
 
-    try {
-      const response = await axios.post(
-        // "http://localhost:5000/api/signup", 
-        `${API_BASE_URL}/signup`, 
+    const cleanName = formData.name.trim();
+    const cleanEmail = formData.email.trim();
 
-        formData
-      );
+    try {
+      const response = await signupUser({
+        name: cleanName,
+        email: cleanEmail,
+        password: formData.password
+      });
       
-      setSuccess("Account created successfully! Redirecting to login...");
+      const token = response.data.token;
+      if (token) {
+        localStorage.setItem("token", token);
+      }
+      setSuccess("Account created successfully! Redirecting...");
       setFormData({ name: "", email: "", password: "" });
       
-      // Redirect to login after 2 seconds
       setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+        navigate("/dashboard");
+      }, 1000);
       
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      const errMsg = err.response?.data?.message || err.response?.data?.error || "Registration failed. Please try again.";
+      setError(errMsg);
       console.error("Signup error:", err);
     } finally {
       setLoading(false);

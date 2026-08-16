@@ -1,5 +1,5 @@
 import express from "express";
-import authMiddleware from "../middleware/auth.js";
+import { authMiddleware, optionalAuth } from "../middleware/auth.js";
 import {
   generateRoadmap,
   generateNotes,
@@ -58,24 +58,30 @@ router.post("/tutor", async (req, res) => {
 });
 
 // 🔹 4. Explain-Back Evaluator
-router.post("/explain", authMiddleware, async (req, res) => {
+router.post("/explain", optionalAuth, async (req, res) => {
   try {
-    const { topic, studentExplanation, technology } = req.body;
-    if (!topic || !studentExplanation) {
+    const { topic, studentExplanation, explanation, technology } = req.body;
+    const finalExplanation = studentExplanation || explanation;
+    if (!topic || !finalExplanation) {
       return res.status(400).json({ error: "Topic and explanation are required" });
     }
 
-    const evaluation = await evaluateExplanation({ topic, studentExplanation });
+    const evaluation = await evaluateExplanation({ topic, studentExplanation: finalExplanation });
     
-    // Sync evaluation to Learning Twin
-    await updateTopicMastery(req.user.id, {
-      topic,
-      technology,
-      explainScore: evaluation.understandingScore,
-      misconceptions: evaluation.misconceptions || []
-    });
-
-    await recordActivity(req.user.id, { minutes: 10, topic });
+    // If user is authenticated, sync evaluation to Learning Twin
+    if (req.user?.id) {
+      try {
+        await updateTopicMastery(req.user.id, {
+          topic,
+          technology,
+          explainScore: evaluation.understandingScore || evaluation.score,
+          misconceptions: evaluation.misconceptions || []
+        });
+        await recordActivity(req.user.id, { minutes: 10, topic });
+      } catch (twinErr) {
+        console.warn("Learning twin sync failed for explain:", twinErr.message);
+      }
+    }
 
     res.json({ evaluation });
   } catch (error) {

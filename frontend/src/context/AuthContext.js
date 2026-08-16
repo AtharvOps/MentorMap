@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { getUserProfile } from "../services/api";
 
 const AuthContext = createContext();
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem("token") || null);
@@ -10,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Fetch logged in user profile
-  const fetchUser = async (authToken) => {
+  const fetchUser = useCallback(async (authToken) => {
     if (!authToken) {
       setUser(null);
       setLoading(false);
@@ -18,41 +17,58 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/user`, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
+      const response = await getUserProfile();
       setUser(response.data);
     } catch (err) {
-      console.error("Auth token expired or invalid:", err);
-      logout();
+      // Only force logout if the token is definitely rejected by server (401)
+      if (err.response && err.response.status === 401) {
+        console.warn("Auth token invalid or expired. Logging out.");
+        localStorage.removeItem("token");
+        setToken(null);
+        setUser(null);
+      } else {
+        console.error("Error fetching user profile:", err.message);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchUser(token);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+    if (token) {
+      fetchUser(token);
+    } else {
+      setLoading(false);
+    }
+  }, [token, fetchUser]);
 
   const login = (newToken, userData) => {
     localStorage.setItem("token", newToken);
     setToken(newToken);
-    if (userData) setUser(userData);
-    else fetchUser(newToken);
+    if (userData) {
+      setUser(userData);
+      setLoading(false);
+    } else {
+      fetchUser(newToken);
+    }
   };
 
   const signup = (newToken, userData) => {
     localStorage.setItem("token", newToken);
     setToken(newToken);
-    if (userData) setUser(userData);
-    else fetchUser(newToken);
+    if (userData) {
+      setUser(userData);
+      setLoading(false);
+    } else {
+      fetchUser(newToken);
+    }
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);
+    setLoading(false);
   };
 
   const refreshUser = () => {
@@ -78,3 +94,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+export default AuthContext;
+

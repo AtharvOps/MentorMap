@@ -37,18 +37,18 @@ app.use(express.json({ limit: "10mb" }));
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 
+const JWT_SECRET = process.env.JWT_SECRET || "supersecret_mentormap_jwt_key_2025";
+
+// 🔹 CORS Middleware
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin, localhost, or any vercel/render preview domain
-      if (!origin || origin.includes("localhost") || origin.includes("127.0.0.1") || origin.includes("vercel.app") || origin.includes("onrender.com")) {
-        return callback(null, true);
-      }
-      return callback(null, true);
-    },
+    origin: true,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Origin", "Accept", "X-Requested-With"]
   })
 );
+app.options("*", cors());
 
 // 🔹 MongoDB Connection
 const mongoURI = process.env.MONGO_URI || process.env.MONGODB_URI;
@@ -65,60 +65,92 @@ if (mongoURI) {
 // 🔹 AUTHENTICATION ROUTES 🔹
 // ==========================
 
+// Helper to format user response safely
+const formatUserResponse = (userDoc) => {
+  const obj = userDoc.toObject ? userDoc.toObject() : userDoc;
+  const idStr = (obj._id || obj.id || "").toString();
+  return {
+    id: idStr,
+    _id: idStr,
+    name: obj.name || "",
+    email: obj.email || "",
+    avatar: obj.avatar || "",
+    role: obj.role || "learner",
+    stats: obj.stats || {},
+    preferences: obj.preferences || {}
+  };
+};
+
 // ✅ User Signup
 app.post("/api/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "All fields (name, email, password) are required" });
     }
 
-    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanName = name.trim();
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
+    const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists with this email" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
+      name: cleanName,
+      email: cleanEmail,
       password: hashedPassword
     });
     await newUser.save();
 
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: newUser._id.toString() }, JWT_SECRET, { expiresIn: "7d" });
 
     res.status(201).json({
       message: "User registered successfully",
       token,
-      user: { id: newUser._id, name: newUser.name, email: newUser.email }
+      user: formatUserResponse(newUser)
     });
   } catch (error) {
     console.error("Signup Error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Internal server error during registration", error: error.message });
   }
 });
 
 // ✅ User Login
 app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email: email?.toLowerCase()?.trim() });
-    if (!user) return res.status(400).json({ message: "Invalid email or password" });
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user._id.toString() }, JWT_SECRET, { expiresIn: "7d" });
 
     res.json({
       message: "Login successful",
       token,
-      user: { id: user._id, name: user.name, email: user.email, stats: user.stats, preferences: user.preferences }
+      user: formatUserResponse(user)
     });
   } catch (error) {
     console.error("Login Error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Internal server error during login", error: error.message });
   }
 });
 
@@ -127,29 +159,35 @@ app.get("/api/user", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
+    res.json(formatUserResponse(user));
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Fetch user error:", error);
+    res.status(500).json({ message: "Server error fetching user profile" });
   }
 });
 
 // ✅ Update User Preferences & Profile
 app.put("/api/user/preferences", authMiddleware, async (req, res) => {
   try {
-    const { preferences, name, avatar } = req.body;
+    const { preferences, name, avatar, weeklyTargetHours, preferredLearningStyle } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (name) user.name = name;
     if (avatar) user.avatar = avatar;
-    if (preferences) {
-      user.preferences = { ...user.preferences.toObject(), ...preferences };
-    }
 
+    const mergedPrefs = { ...(user.preferences?.toObject ? user.preferences.toObject() : user.preferences) };
+    if (preferences) Object.assign(mergedPrefs, preferences);
+    if (weeklyTargetHours !== undefined) mergedPrefs.weeklyGoalHours = Number(weeklyTargetHours);
+    if (preferredLearningStyle !== undefined) mergedPrefs.preferredLearningStyle = preferredLearningStyle;
+
+    user.preferences = mergedPrefs;
     await user.save();
-    res.json({ message: "Profile updated", user });
+
+    res.json({ message: "Profile preferences updated", user: formatUserResponse(user) });
   } catch (error) {
-    res.status(500).json({ error: "Failed to update profile preferences" });
+    console.error("Update preferences error:", error);
+    res.status(500).json({ message: "Failed to update profile preferences", error: error.message });
   }
 });
 
@@ -189,7 +227,7 @@ app.get("*", (req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 if (!process.env.VERCEL) {
-  app.listen(PORT, () => console.log(`🚀 MentorMap 2.0 Server running on port ${PORT}`));
+  app.listen(PORT, "0.0.0.0", () => console.log(`🚀 MentorMap 2.0 Server running on port ${PORT}`));
 }
 
 export default app;

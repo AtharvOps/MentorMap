@@ -53,4 +53,27 @@ router.post("/activity", authMiddleware, async (req, res) => {
   }
 });
 
+// 🔹 Update learning preferences
+router.put("/preferences", authMiddleware, async (req, res) => {
+  try {
+    const { weeklyTargetHours, preferredLearningStyle, preferences } = req.body;
+    const User = (await import("../models/User.js")).default;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const currentPrefs = user.preferences?.toObject ? user.preferences.toObject() : (user.preferences || {});
+    if (preferences) Object.assign(currentPrefs, preferences);
+    if (weeklyTargetHours !== undefined) currentPrefs.weeklyGoalHours = Number(weeklyTargetHours);
+    if (preferredLearningStyle !== undefined) currentPrefs.preferredLearningStyle = preferredLearningStyle;
+
+    user.preferences = currentPrefs;
+    await user.save();
+
+    res.json({ message: "Preferences updated", preferences: user.preferences });
+  } catch (error) {
+    console.error("Twin preferences update error:", error);
+    res.status(500).json({ error: "Failed to update preferences" });
+  }
+});
+
 export default router;

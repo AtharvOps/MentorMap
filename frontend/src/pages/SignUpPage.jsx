@@ -17,19 +17,28 @@ const SignUpPage = () => {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    if (!name || !email || !password) {
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+
+    if (!cleanName || !cleanEmail || !password) {
       toast.warning("Please fill in all fields.");
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.warning("Password must be at least 6 characters long.");
       return;
     }
 
     setLoading(true);
     try {
-      const response = await signupUser({ name, email, password });
+      const response = await signupUser({ name: cleanName, email: cleanEmail, password });
       signup(response.data.token, response.data.user);
       toast.success("Account created successfully! Welcome to MentorMap.");
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Registration failed. Try again.");
+      const errMsg = err.response?.data?.message || err.response?.data?.error || (err.message === "Network Error" ? "Cannot connect to server. Please ensure backend is running." : "Registration failed. Try again.");
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }

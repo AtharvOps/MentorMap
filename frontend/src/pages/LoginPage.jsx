@@ -16,19 +16,21 @@ const LoginPage = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !password) {
       toast.warning("Please fill in all fields.");
       return;
     }
 
     setLoading(true);
     try {
-      const response = await loginUser({ email, password });
+      const response = await loginUser({ email: cleanEmail, password });
       login(response.data.token, response.data.user);
       toast.success("Welcome back to MentorMap!");
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Invalid email or password.");
+      const errMsg = err.response?.data?.message || err.response?.data?.error || (err.message === "Network Error" ? "Cannot connect to server. Please ensure backend is running." : "Invalid email or password.");
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }

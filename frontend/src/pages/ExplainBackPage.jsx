@@ -22,12 +22,14 @@ const ExplainBackPage = () => {
     try {
       const res = await evaluateExplainBack({
         topic: currentTopic,
+        studentExplanation: explanation,
         explanation
       });
       setEvaluation(res.data.evaluation);
       toast.success("Explanation evaluated!");
     } catch (err) {
-      toast.error("Failed to evaluate explanation.");
+      const errMsg = err.response?.data?.error || err.response?.data?.message || "Failed to evaluate explanation.";
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }

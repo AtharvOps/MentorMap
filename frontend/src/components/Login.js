@@ -6,7 +6,7 @@ import loginAnimation from "../assets/login-animation.json";
 import "./Login.css";
 
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+import { loginUser } from "../services/api";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -29,24 +29,26 @@ const Login = () => {
     setError("");
     setSuccess("");
 
-    // `${API_BASE_URL}/api/signup`, 
+    const cleanEmail = formData.email.trim();
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/login`, formData);
+      const response = await loginUser({ email: cleanEmail, password: formData.password });
       const token = response.data.token;
 
-      localStorage.setItem("token", token);
+      if (token) {
+        localStorage.setItem("token", token);
+      }
       setSuccess("Login successful! Redirecting...");
       
-      // Small delay to show success message before redirect
       setTimeout(() => {
         navigate("/dashboard");
         window.location.reload();
-      }, 1500);
+      }, 1000);
       
     } catch (err) {
       setLoading(false);
-      setError(err.response?.data?.message || "Login failed. Please try again.");
+      const errMsg = err.response?.data?.message || err.response?.data?.error || "Login failed. Please try again.";
+      setError(errMsg);
       console.error("Login error:", err);
     }
   };

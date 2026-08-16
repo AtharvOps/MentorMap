@@ -57,6 +57,42 @@ router.put("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// 🔹 Evaluate project submission
+router.post("/:id/evaluate", authMiddleware, async (req, res) => {
+  try {
+    const { githubUrl, liveUrl, submissionNotes } = req.body;
+    const project = await Project.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!project) return res.status(404).json({ error: "Project not found" });
+
+    const { evaluateProject } = await import("../services/geminiService.js");
+    const { recordActivity } = await import("../services/learningTwinService.js");
+
+    const evaluation = await evaluateProject({
+      projectTitle: project.title,
+      requirements: project.coreRequirements || [],
+      codeOrRepo: githubUrl || liveUrl || "",
+      description: submissionNotes || ""
+    });
+
+    project.submission = {
+      githubUrl: githubUrl || "",
+      liveUrl: liveUrl || "",
+      notes: submissionNotes || "",
+      submittedAt: new Date()
+    };
+    project.evaluation = evaluation;
+    project.status = "Evaluated";
+    await project.save();
+
+    await recordActivity(req.user.id, { minutes: 45, isProject: true, topic: project.title });
+
+    res.json({ message: "Project evaluated successfully", evaluation, project });
+  } catch (error) {
+    console.error("Project evaluation error:", error);
+    res.status(500).json({ error: "Failed to evaluate project submission" });
+  }
+});
+
 // 🔹 Delete project
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
