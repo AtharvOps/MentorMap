@@ -114,7 +114,7 @@ const AppShell = ({ children }) => {
   const levelProgress = Math.min(100, Math.round((currentLevelXp / 500) * 100));
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "var(--bg-app)" }}>
+    <div className="app-layout">
       {/* Search Command Palette */}
       <CommandPalette isOpen={isCommandOpen} onClose={setIsCommandOpen} />
 
@@ -197,12 +197,7 @@ const AppShell = ({ children }) => {
       {/* Mobile Backdrop */}
       {mobileMenuOpen && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.45)",
-            zIndex: 999
-          }}
+          className="mobile-backdrop"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
@@ -211,53 +206,58 @@ const AppShell = ({ children }) => {
           DEVELOPER SIDEBAR
           ======================= */}
       <aside
+        className={`app-sidebar ${mobileMenuOpen ? "mobile-open" : ""}`}
         style={{
           width: sidebarCollapsed ? "74px" : "250px",
-          backgroundColor: "var(--bg-sidebar)",
-          borderRight: "1px solid var(--border)",
-          display: "flex",
-          flexDirection: "column",
-          position: "sticky",
-          top: 0,
-          height: "100vh",
-          zIndex: 1000,
-          transition: "width 0.15s ease",
-          flexShrink: 0
         }}
       >
         {/* Brand Header with Logo */}
         <div
           style={{
-            padding: "14px 18px",
+            padding: "14px 16px",
             display: "flex",
             alignItems: "center",
-            justifyContent: sidebarCollapsed ? "center" : "flex-start",
-            gap: "12px",
+            justifyContent: "space-between",
             borderBottom: "1px solid var(--border)",
             height: "64px"
           }}
         >
-          <Link to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
             <img
               src={logo}
               alt="MentorMap Logo"
               style={{
-                width: "36px",
-                height: "36px",
+                width: "34px",
+                height: "34px",
                 objectFit: "contain"
               }}
             />
             {!sidebarCollapsed && (
               <div>
-                <span style={{ fontWeight: 800, fontSize: "1.2rem", color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
+                <span style={{ fontWeight: 800, fontSize: "1.18rem", color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
                   Mentor<span style={{ color: "var(--primary)" }}>Map</span>
                 </span>
-                <span style={{ display: "block", fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 700 }}>
+                <span style={{ display: "block", fontSize: "0.7rem", color: "var(--text-muted)", fontWeight: 700 }}>
                   LEARNING PORTAL
                 </span>
               </div>
             )}
           </Link>
+
+          {/* Close button on mobile drawer */}
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="mobile-only"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--text-muted)",
+              padding: "4px"
+            }}
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Gamified Level & Streak Widget */}
@@ -415,44 +415,45 @@ const AppShell = ({ children }) => {
       {/* =======================
           MAIN APP CONTENT & STICKY HEADER
           ======================= */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+      <div className="app-main-wrapper">
         {/* Sticky Header */}
         <header
+          className="app-header"
           style={{
-            height: "64px",
             backgroundColor: "var(--bg-header)",
             borderBottom: "1px solid var(--border)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "0 24px",
             position: "sticky",
             top: 0,
             zIndex: 900
           }}
         >
           {/* Left: Mobile Drawer Trigger + Collapse + Search Trigger */}
-          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="d-md-none"
-              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-primary)" }}
+              onClick={() => setMobileMenuOpen(true)}
+              className="mobile-only"
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-primary)", padding: "6px", display: "flex", alignItems: "center" }}
+              aria-label="Open Navigation Menu"
             >
               <Menu size={22} />
             </button>
 
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="d-none d-md-block"
-              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+              className="desktop-only"
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: "4px" }}
               title="Toggle Sidebar"
             >
               <Menu size={20} />
             </button>
 
-            {/* Quick Search */}
+            {/* Quick Search (Desktop) */}
             <button
               onClick={() => setIsCommandOpen(true)}
+              className="desktop-only"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -475,14 +476,15 @@ const AppShell = ({ children }) => {
           </div>
 
           {/* Right: + Generate Course CTA, Theme Toggle, Profile */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <button
               onClick={() => setIsGenModalOpen(true)}
               className="btn-gfg-primary"
-              style={{ padding: "8px 16px", fontSize: "0.9rem" }}
+              style={{ padding: "8px 14px", fontSize: "0.88rem" }}
             >
               <Plus size={16} />
-              <span>+ Generate Course</span>
+              <span className="desktop-only">+ Generate Course</span>
+              <span className="mobile-only">+ Course</span>
             </button>
 
             {/* Dark/Light Toggle */}
@@ -509,13 +511,13 @@ const AppShell = ({ children }) => {
               <Link to="/profile" style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none" }}>
                 <div
                   style={{
-                    width: "36px",
-                    height: "36px",
+                    width: "34px",
+                    height: "34px",
                     borderRadius: "var(--radius-full)",
                     backgroundColor: "var(--primary-soft)",
                     color: "var(--primary)",
                     fontWeight: 800,
-                    fontSize: "1rem",
+                    fontSize: "0.95rem",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -532,8 +534,8 @@ const AppShell = ({ children }) => {
                   color: "var(--primary)",
                   fontWeight: 700,
                   textDecoration: "none",
-                  fontSize: "0.92rem",
-                  padding: "7px 14px"
+                  fontSize: "0.9rem",
+                  padding: "6px 12px"
                 }}
               >
                 Sign In
@@ -543,10 +545,51 @@ const AppShell = ({ children }) => {
         </header>
 
         {/* Main Content Area */}
-        <main style={{ flex: 1, padding: "24px 28px", maxWidth: "1400px", width: "100%", margin: "0 auto" }}>
+        <main className="app-main-content">
           {children}
         </main>
       </div>
+
+      {/* Fixed Mobile Bottom Navigation Bar */}
+      <nav className="mobile-bottom-nav">
+        <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className={`mobile-nav-item ${location.pathname === "/dashboard" ? "active" : ""}`}>
+          <LayoutDashboard size={20} />
+          <span>Dashboard</span>
+        </Link>
+        <Link to="/explore" onClick={() => setMobileMenuOpen(false)} className={`mobile-nav-item ${location.pathname === "/explore" ? "active" : ""}`}>
+          <Compass size={20} />
+          <span>Explore</span>
+        </Link>
+        <button
+          onClick={() => setIsGenModalOpen(true)}
+          className="mobile-nav-item"
+          style={{
+            backgroundColor: "var(--primary)",
+            color: "#ffffff",
+            borderRadius: "50%",
+            width: "44px",
+            height: "44px",
+            border: "none",
+            marginTop: "-16px",
+            boxShadow: "0 4px 12px rgba(14, 133, 68, 0.4)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+          title="Generate Course"
+        >
+          <Plus size={22} color="#ffffff" />
+        </button>
+        <Link to="/tutor" onClick={() => setMobileMenuOpen(false)} className={`mobile-nav-item ${location.pathname === "/tutor" ? "active" : ""}`}>
+          <BrainCircuit size={20} />
+          <span>AI Tutor</span>
+        </Link>
+        <Link to={isAuthenticated ? "/profile" : "/login"} onClick={() => setMobileMenuOpen(false)} className={`mobile-nav-item ${location.pathname === "/profile" || location.pathname === "/login" ? "active" : ""}`}>
+          <User size={20} />
+          <span>{isAuthenticated ? "Passport" : "Sign In"}</span>
+        </Link>
+      </nav>
     </div>
   );
 };

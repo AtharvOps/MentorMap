@@ -144,11 +144,9 @@ const NotesPage = () => {
   );
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "24px", paddingBottom: "60px" }}>
-      {/* ==========================
-          LEFT COLUMN: EDITORIAL NOTES GENERATOR
-          ========================== */}
-      <div style={{ gridColumn: "span 2", display: "flex", flexDirection: "column", gap: "20px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px", paddingBottom: "60px" }}>
+      {/* Top Generator Card */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
         {/* Topic Input Bar */}
         <div className="saas-card" style={{ padding: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>

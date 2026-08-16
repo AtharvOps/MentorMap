@@ -116,44 +116,49 @@ const AnalyticsPage = () => {
           </div>
         </div>
 
-        {/* Month Labels on Top */}
-        <div style={{ display: "flex", justifyContent: "space-between", paddingLeft: "32px", paddingRight: "10px", marginBottom: "6px", fontSize: "0.78rem", color: "var(--text-muted)", fontWeight: 700 }}>
-          {months.map((m, i) => (
-            <span key={i}>{m}</span>
-          ))}
-        </div>
+        {/* Heatmap Grid with Mobile Touch Scroll Support */}
+        <div className="responsive-scroll-x">
+          <div style={{ minWidth: "680px" }}>
+            {/* Month Labels on Top */}
+            <div style={{ display: "flex", justifyContent: "space-between", paddingLeft: "32px", paddingRight: "10px", marginBottom: "6px", fontSize: "0.78rem", color: "var(--text-muted)", fontWeight: 700 }}>
+              {months.map((m, i) => (
+                <span key={i}>{m}</span>
+              ))}
+            </div>
 
-        {/* Heatmap Body: Weekday labels on left + 52 Column grid */}
-        <div style={{ display: "flex", gap: "8px" }}>
-          {/* Weekday labels */}
-          <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "112px", fontSize: "0.74rem", color: "var(--text-muted)", fontWeight: 600, paddingRight: "4px" }}>
-            <span>Mon</span>
-            <span>Wed</span>
-            <span>Fri</span>
-          </div>
+            {/* Heatmap Body: Weekday labels on left + 52 Column grid */}
+            <div style={{ display: "flex", gap: "8px" }}>
+              {/* Weekday labels */}
+              <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "112px", fontSize: "0.74rem", color: "var(--text-muted)", fontWeight: 600, paddingRight: "4px" }}>
+                <span>Mon</span>
+                <span>Wed</span>
+                <span>Fri</span>
+              </div>
 
-          {/* 52 Columns Grid */}
-          <div style={{ display: "flex", gap: "3.5px", flex: 1, overflowX: "auto", paddingBottom: "6px" }}>
-            {weeks.map((week, wIdx) => (
-              <div key={wIdx} style={{ display: "flex", flexDirection: "column", gap: "3.5px" }}>
-                {week.map((day, dIdx) => (
-                  <div
-                    key={dIdx}
-                    onMouseEnter={() => setHoveredDay(day)}
-                    onMouseLeave={() => setHoveredDay(null)}
-                    style={{
-                      width: "13px",
-                      height: "13px",
-                      borderRadius: "2px",
-                      backgroundColor: getHeatmapColor(day.count),
-                      border: "1px solid rgba(0,0,0,0.06)",
-                      cursor: "pointer",
-                      transition: "transform 0.1s ease"
-                    }}
-                  />
+              {/* 52 Columns Grid */}
+              <div style={{ display: "flex", gap: "3.5px", flex: 1 }}>
+                {weeks.map((week, wIdx) => (
+                  <div key={wIdx} style={{ display: "flex", flexDirection: "column", gap: "3.5px" }}>
+                    {week.map((day, dIdx) => (
+                      <div
+                        key={dIdx}
+                        onMouseEnter={() => setHoveredDay(day)}
+                        onMouseLeave={() => setHoveredDay(null)}
+                        style={{
+                          width: "13px",
+                          height: "13px",
+                          borderRadius: "2px",
+                          backgroundColor: getHeatmapColor(day.count),
+                          border: "1px solid rgba(0,0,0,0.06)",
+                          cursor: "pointer",
+                          transition: "transform 0.1s ease"
+                        }}
+                      />
+                    ))}
+                  </div>
                 ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
