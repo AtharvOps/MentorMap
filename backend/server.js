@@ -39,21 +39,27 @@ app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://127.0.0.1:3000",
-      "https://learning-pathway-project-1.onrender.com",
-      "https://learning-pathway-project.vercel.app"
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin, localhost, or any vercel/render preview domain
+      if (!origin || origin.includes("localhost") || origin.includes("127.0.0.1") || origin.includes("vercel.app") || origin.includes("onrender.com")) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   })
 );
 
 // 🔹 MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected Successfully"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+const mongoURI = process.env.MONGO_URI || process.env.MONGODB_URI;
+if (mongoURI) {
+  mongoose
+    .connect(mongoURI)
+    .then(() => console.log("MongoDB Connected Successfully"))
+    .catch((err) => console.error("MongoDB connection error:", err));
+} else {
+  console.warn("⚠️ MONGO_URI not set yet in environment variables.");
+}
 
 // ==========================
 // 🔹 AUTHENTICATION ROUTES 🔹
