@@ -154,7 +154,7 @@ npm start
 
 ## 🧑‍💻 Author & Developer
 
-**MentorMap 2.0** is designed and developed with ❤️ by **Atharv Patil**.
+**MentorMap 2.0** is designed and developed by **Atharv Patil**.
 
 - **Lead Architect**: Atharv Patil
 - **GitHub**: [@AtharvOps](https://github.com/AtharvOps)
