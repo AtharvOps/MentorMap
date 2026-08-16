@@ -161,8 +161,9 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", service: "MentorMap 2.0 API", time: new Date() });
 });
 
-// ===================
-// 🔹 SERVER START 🔹
-// ===================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 MentorMap 2.0 Server running on port ${PORT}`));
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`🚀 MentorMap 2.0 Server running on port ${PORT}`));
+}
+
+export default app;
