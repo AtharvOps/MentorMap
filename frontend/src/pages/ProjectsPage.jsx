@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { getProjects, generateProjectMission, evaluateProjectSubmission } from "../services/api";
 import { 
-  Code2, GitBranch, CheckCircle2, 
-  Layers, RefreshCw, Send, Plus 
+  Code2, CheckCircle2, 
+  RefreshCw, Send, Plus 
 } from "lucide-react";
 import { toast } from "react-toastify";
 
 const ProjectsPage = () => {
   const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [topic, setTopic] = useState("Full Stack Web Development");
   const [difficulty, setDifficulty] = useState("Intermediate");
   const [genLoading, setGenLoading] = useState(false);

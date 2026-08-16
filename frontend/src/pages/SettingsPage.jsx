@@ -1,15 +1,13 @@
 import React, { useState } from "react";
-import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { updateLearnerTwinPreferences } from "../services/api";
 import { 
-  Sun, Moon, Check, Save 
+  Sun, Moon, Save 
 } from "lucide-react";
 import { toast } from "react-toastify";
 
 const SettingsPage = () => {
-  const { user } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { setTheme, theme } = useTheme();
 
   const [weeklyTargetHours, setWeeklyTargetHours] = useState(5);
   const [preferredLearningStyle, setPreferredLearningStyle] = useState("Visual & Code-first");

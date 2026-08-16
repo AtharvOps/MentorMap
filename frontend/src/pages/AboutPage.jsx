@@ -1,11 +1,9 @@
 import React from "react";
 import Lottie from "lottie-react";
 import teamAnimation from "../assets/team-animation.json";
-import logo from "../assets/logo.png";
 import { 
-  Sparkles, Code2, Database, BrainCircuit, Terminal, 
-  Layers, CheckCircle2, ShieldCheck, Github, Linkedin, 
-  Globe, Heart, Award, Zap, Compass, Users 
+  Sparkles, Code2, BrainCircuit, Terminal, 
+  Layers, ShieldCheck, Award, Zap, Compass 
 } from "lucide-react";
 import { Link } from "react-router-dom";
 

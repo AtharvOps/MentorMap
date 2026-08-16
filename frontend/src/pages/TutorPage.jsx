@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { chatWithTutor } from "../services/api";
 import { 
-  BrainCircuit, Send, RefreshCw, Sparkles, BookOpen 
+  Send, RefreshCw 
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -13,7 +13,7 @@ const TutorPage = () => {
     }
   ]);
   const [input, setInput] = useState("");
-  const [topic, setTopic] = useState("General Technical Concepts");
+  const [topic] = useState("General Technical Concepts");
   const [loading, setLoading] = useState(false);
 
   const handleSend = async (e) => {

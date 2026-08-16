@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { simulateInterviewTurn } from "../services/api";
 import { 
-  Terminal, RefreshCw, Briefcase, Send, Award, CheckCircle2, AlertCircle 
+  Terminal, RefreshCw, Send, Award 
 } from "lucide-react";
 import { toast } from "react-toastify";
 

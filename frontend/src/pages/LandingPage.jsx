@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  ArrowRight, BookOpen, Layers, CheckCircle, Code2, 
-  Search, Star, Users, Clock, ShieldCheck, Terminal 
+  ArrowRight, BookOpen, Layers, CheckCircle, 
+  Search, Star, Clock, ShieldCheck, Terminal 
 } from "lucide-react";
 import { generatePathway, saveCourse } from "../services/api";
 import { useAuth } from "../context/AuthContext";

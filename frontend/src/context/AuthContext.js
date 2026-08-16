@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     fetchUser(token);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const login = (newToken, userData) => {

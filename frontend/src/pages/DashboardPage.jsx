@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { getCourses, deleteCourse, getSmartNextAction, getLearningTwin, getAnalyticsSummary } from "../services/api";
+import { getCourses, deleteCourse } from "../services/api";
 import { 
   Flame, Clock, CheckCircle2, Award, Play, 
-  Trash2, Plus, AlertTriangle, ArrowRight, 
-  BookOpen, Sparkles, Zap, Target, ShieldCheck, Terminal, BrainCircuit 
+  Trash2, Plus, ArrowRight, 
+  BookOpen, Zap, Target, Terminal, BrainCircuit 
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -14,36 +14,20 @@ const DashboardPage = () => {
   const navigate = useNavigate();
 
   const [courses, setCourses] = useState([]);
-  const [nextAction, setNextAction] = useState(null);
-  const [twin, setTwin] = useState(null);
-  const [analytics, setAnalytics] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   // Gamification Quests State
-  const [quests, setQuests] = useState([
+  const quests = [
     { id: 1, title: "Take 1 Practice Quiz", xp: 50, path: "/quizzes", done: false, icon: <BrainCircuit size={18} color="var(--primary)" /> },
     { id: 2, title: "Study 1 Editorial Note", xp: 30, path: "/notes", done: true, icon: <BookOpen size={18} color="var(--info)" /> },
     { id: 3, title: "Solve 1 Debug Challenge", xp: 75, path: "/lab", done: false, icon: <Terminal size={18} color="#d97706" /> }
-  ]);
+  ];
 
   const fetchDashboardData = async () => {
-    setLoading(true);
     try {
-      const [coursesRes, actionRes, twinRes, analyticsRes] = await Promise.allSettled([
-        getCourses(),
-        getSmartNextAction(),
-        getLearningTwin(),
-        getAnalyticsSummary()
-      ]);
-
-      if (coursesRes.status === "fulfilled") setCourses(coursesRes.value.data || []);
-      if (actionRes.status === "fulfilled") setNextAction(actionRes.value.data);
-      if (twinRes.status === "fulfilled") setTwin(twinRes.value.data);
-      if (analyticsRes.status === "fulfilled") setAnalytics(analyticsRes.value.data);
+      const res = await getCourses();
+      setCourses(res.data || []);
     } catch (err) {
       console.error("Dashboard fetch error:", err);
-    } finally {
-      setLoading(false);
     }
   };
 

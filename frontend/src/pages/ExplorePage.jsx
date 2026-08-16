@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getExploreTemplates, generatePathway, saveCourse } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { 
-  Search, Star, Users, Clock, BookOpen, 
-  Layers, ArrowRight, CheckCircle2, Sparkles, Filter 
+  Search, Star, Clock, ArrowRight 
 } from "lucide-react";
 import { toast } from "react-toastify";
 
 const ExplorePage = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
@@ -131,6 +129,7 @@ const ExplorePage = () => {
       }
     };
     fetchTemplates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleEnrollCourse = async (courseTrack) => {

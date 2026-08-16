@@ -72,6 +72,7 @@ const NotesPage = () => {
     } else {
       handleGenerate("Binary Search Trees", "Data Structures");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialTopic, initialTech]);
 
   const handleSaveNote = async () => {

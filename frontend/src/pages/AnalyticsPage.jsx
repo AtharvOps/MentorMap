@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getAnalyticsSummary, getActivityLogs, getQuizHistory } from "../services/api";
 import { 
-  Flame, CheckCircle2, Award, Zap, Calendar, TrendingUp 
+  Flame, CheckCircle2, Award, Zap, Calendar 
 } from "lucide-react";
 
 const AnalyticsPage = () => {

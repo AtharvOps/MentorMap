@@ -4,8 +4,7 @@ import * as d3 from "d3";
 import { getCourseById, updateCourseProgress } from "../services/api";
 import { 
   CheckCircle, Circle, BookOpen, BrainCircuit, 
-  ArrowLeft, Layers, List, X, 
-  Search, ZoomIn, ZoomOut, RotateCcw, Maximize2 
+  ArrowLeft, Layers, List, X, Maximize2 
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -21,7 +20,6 @@ const RoadmapDetailPage = () => {
   const [progress, setProgress] = useState(0);
   const [viewMode, setViewMode] = useState("graph"); // "graph" | "table"
   const [selectedTopic, setSelectedTopic] = useState(null);
-  const [nodeSearch, setNodeSearch] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
@@ -50,6 +48,7 @@ const RoadmapDetailPage = () => {
     };
 
     fetchCourse();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const getModules = (pathway) => {

@@ -2,10 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getPublicPassport, getUserProfile } from "../services/api";
-import { 
-  Award, CheckCircle, Copy, Share2, 
-  BookOpen, Code2 
-} from "lucide-react";
+import { Award, Share2 } from "lucide-react";
 import { toast } from "react-toastify";
 import logo from "../assets/logo.png";
 

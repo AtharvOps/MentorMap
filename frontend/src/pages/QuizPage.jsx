@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { generateAIQuiz, submitQuizAttempt, completeCourseStep } from "../services/api";
 import { 
-  CheckCircle, XCircle, BrainCircuit, 
+  CheckCircle, XCircle, 
   ArrowRight, RefreshCw, Award, AlertTriangle 
 } from "lucide-react";
 import { toast } from "react-toastify";
@@ -17,7 +17,7 @@ const QuizPage = () => {
   const [topic, setTopic] = useState(initialTopic || "Binary Search");
   const [questionCount, setQuestionCount] = useState(5);
   const [difficulty, setDifficulty] = useState("Intermediate");
-  const [confidenceLevel, setConfidenceLevel] = useState(3);
+  const [confidenceLevel] = useState(3);
 
   const [quizState, setQuizState] = useState("CONFIG"); // "CONFIG" | "IN_PROGRESS" | "REVIEW"
   const [questions, setQuestions] = useState([]);
