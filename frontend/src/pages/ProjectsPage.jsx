@@ -25,9 +25,6 @@ const ProjectsPage = () => {
       const res = await getProjects();
       setProjects(res.data || []);
     } catch (_) {}
-    finally {
-      setLoading(false);
-    }
   };
 
   useEffect(() => {
